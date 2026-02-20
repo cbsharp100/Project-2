@@ -1,41 +1,39 @@
 from fastapi import FastAPI
-from app.finance_engine import simulate_investment
 from app.schemas import ChatRequest, ChatResponse
+from app.finance_engine import simulate_investment
 
-app = FastAPI(title="Agentic Finance AI")
+app = FastAPI(title="MGMT 690 Project 2: Agentic Finance")
 
 @app.get("/")
 def home():
     return {"message": "Project 2 API running"}
 
 @app.post("/simulate")
-def run_simulation():
-    result = simulate_investment()
-    return result
+def simulate():
+    # default simulation
+    return simulate_investment()
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
-    message = req.message.lower()
+    q = req.message.lower()
 
-    if "invest" in message or "start age" in message:
+    # basic intent routing (we’ll make this smarter later)
+    if any(k in q for k in ["invest", "retire", "start age", "401k", "ira", "million", "probability", "monte carlo"]):
         sim = simulate_investment()
-
-        answer = f"""
-Monte Carlo simulation results:
-
-Expected value: ${sim['mean']:,.0f}
-Median outcome: ${sim['median']:,.0f}
-Downside (10th percentile): ${sim['p10']:,.0f}
-Upside (90th percentile): ${sim['p90']:,.0f}
-
-This shows the distribution of outcomes rather than a single deterministic path.
-"""
-
+        answer = (
+            "Monte Carlo simulation results (stochastic outcomes):\n\n"
+            f"- Expected final value: ${sim['mean']:,.0f}\n"
+            f"- Median final value: ${sim['median']:,.0f}\n"
+            f"- 10th percentile (downside): ${sim['p10']:,.0f}\n"
+            f"- 90th percentile (upside): ${sim['p90']:,.0f}\n"
+            f"- Std dev (dispersion): ${sim['std']:,.0f}\n\n"
+            "This replaces a single deterministic 7% path with a distribution of outcomes."
+        )
         return ChatResponse(answer=answer, sources=[], grounded=True)
 
     return ChatResponse(
-        answer="Ask me about investing scenarios or probabilities.",
+        answer="Ask me a question about investing outcomes (e.g., probability of reaching $1M, starting age tradeoffs, volatility).",
         sources=[],
-        grounded=False
+        grounded=False,
     )
 
