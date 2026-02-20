@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from app.schemas import ChatRequest, ChatResponse
 from app.finance_engine import simulate_investment
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI(title="MGMT 690 Project 2: Agentic Finance")
 
