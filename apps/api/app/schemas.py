@@ -6,7 +6,7 @@ class ChatRequest(BaseModel):
 
 class SourceChunk(BaseModel):
     doc: str
-    page: Optional[int]
+    page: Optional[int] = None
     chunk_id: str
     snippet: str
 
@@ -14,4 +14,3 @@ class ChatResponse(BaseModel):
     answer: str
     sources: List[SourceChunk]
     grounded: bool
-
