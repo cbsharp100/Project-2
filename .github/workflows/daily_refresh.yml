@@ -1,16 +1,18 @@
-name: Daily refresh
+name: Daily Refresh
 
 on:
   schedule:
-    - cron: "0 13 * * *"   # runs every day at 13:00 UTC (~8am Indiana time)
+    - cron: "10 12 * * *"  # runs daily at 12:10 UTC
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -23,17 +25,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Refresh data and ratings
+      - name: Refresh data + ratings
         run: |
-          python -m src.fetch_scores
-          python -m src.net_pull
+          python -m src.fetch_current_season
           python -m src.ratings
-          python -m src.elo_net_adjust
 
-      - name: Commit updated data
+      - name: Commit updated CSVs (if changed)
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add data/processed/*.csv
-          git commit -m "Daily data refresh" || echo "No changes to commit"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/processed/*.csv data/processed/**/*.csv || true
+          git commit -m "Daily refresh data" || echo "No changes to commit"
           git push
